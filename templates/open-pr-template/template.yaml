@@ -55,7 +55,6 @@ spec:
         url: ./skeleton
         values:
           username: ${{ parameters.username }}
-          timestamp: ${{ '' + (parameters.timestamp | now) }}
 
     - id: publish
       name: Create Pull Request
