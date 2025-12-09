@@ -72,13 +72,3 @@ spec:
     links:
       - title: View Pull Request
         url: ${{ steps.publish.output.remoteUrl }}
-```
-
-**File: `backstage-templates/templates/open-pr-template/skeleton/hello-world.txt`**
-```
-Hello World!
-
-Created by: ${{ values.username }}
-Created at: ${{ values.timestamp }}
-
-This file was created using Backstage scaffolder.
