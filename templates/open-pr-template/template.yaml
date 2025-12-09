@@ -1,0 +1,84 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: open-pr-template
+  title: Open Pull Request
+  description: Opens a PR with a hello world file in any repository
+  tags:
+    - git
+    - pr
+spec:
+  owner: platform-team
+  type: service
+  
+  parameters:
+    - title: Pull Request Information
+      required:
+        - username
+        - targetRepo
+        - prTitle
+      properties:
+        username:
+          title: Your Username
+          type: string
+          description: Your GitHub/GitLab username
+          ui:autofocus: true
+        
+        targetRepo:
+          title: Target Repository
+          type: string
+          description: 'Repository URL (e.g., github.com/org/repo)'
+          pattern: '^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$'
+          ui:placeholder: 'github.com/my-org/my-repo'
+        
+        prTitle:
+          title: PR Title
+          type: string
+          default: 'Add hello world file'
+        
+        prDescription:
+          title: PR Description
+          type: string
+          ui:widget: textarea
+          default: 'This PR adds a hello world file'
+          
+        branchName:
+          title: Branch Name
+          type: string
+          default: 'add-hello-world'
+
+  steps:
+    - id: fetch-base
+      name: Fetch Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          username: ${{ parameters.username }}
+          timestamp: ${{ '' + (parameters.timestamp | now) }}
+
+    - id: publish
+      name: Create Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: ${{ parameters.targetRepo }}
+        branchName: ${{ parameters.branchName }}
+        title: ${{ parameters.prTitle }}
+        description: ${{ parameters.prDescription }}
+        gitAuthorName: ${{ parameters.username }}
+        gitAuthorEmail: ${{ parameters.username }}@example.com
+
+  output:
+    links:
+      - title: View Pull Request
+        url: ${{ steps.publish.output.remoteUrl }}
+```
+
+**File: `backstage-templates/templates/open-pr-template/skeleton/hello-world.txt`**
+```
+Hello World!
+
+Created by: ${{ values.username }}
+Created at: ${{ values.timestamp }}
+
+This file was created using Backstage scaffolder.
