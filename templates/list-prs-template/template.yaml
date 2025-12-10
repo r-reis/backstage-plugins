@@ -1,0 +1,80 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: list-prs-template
+  title: List Open Pull Requests
+  description: Lists all open pull requests for a repository with details like author, date, title, etc.
+  tags:
+    - git
+    - pr
+    - github
+spec:
+  owner: platform-team
+  type: service
+  
+  parameters:
+    - title: Repository Information
+      required:
+        - owner
+        - repo
+      properties:
+        owner:
+          title: Repository Owner
+          type: string
+          description: 'GitHub organization or username (e.g., r-reis)'
+          ui:autofocus: true
+          
+        repo:
+          title: Repository Name
+          type: string
+          description: 'Repository name (e.g., backstage-plugins)'
+          
+        state:
+          title: PR State
+          type: string
+          description: 'Filter by PR state'
+          enum:
+            - open
+            - closed
+            - all
+          default: open
+          
+        outputFormat:
+          title: Output Format
+          type: string
+          description: 'Format of the output file'
+          enum:
+            - markdown
+            - json
+          default: markdown
+
+  steps:
+    - id: create-reports
+      name: Create PR List Reports
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          owner: ${{ parameters.owner }}
+          repo: ${{ parameters.repo }}
+          state: ${{ parameters.state }}
+          apiUrl: https://api.github.com/repos/${{ parameters.owner }}/${{ parameters.repo }}/pulls?state=${{ parameters.state }}&per_page=100
+          githubUrl: https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/pulls
+
+  output:
+    links:
+      - title: View Interactive PR Report (HTML)
+        url: ${{ steps.create-reports.output.path }}/pr-list.html
+      - title: View Markdown Report
+        url: ${{ steps.create-reports.output.path }}/pr-list.md
+      - title: View PRs on GitHub
+        url: https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/pulls?q=is:pr+is:${{ parameters.state }}
+      - title: GitHub API Endpoint
+        url: https://api.github.com/repos/${{ parameters.owner }}/${{ parameters.repo }}/pulls?state=${{ parameters.state }}
+    text:
+      - title: Repository
+        content: ${{ parameters.owner }}/${{ parameters.repo }}
+      - title: PR State Filter
+        content: ${{ parameters.state }}
+      - title: Instructions
+        content: Open pr-list.html in your browser for an interactive PR list. The HTML file will automatically fetch and display PRs from GitHub. For private repos, enter your GitHub token in the page.
