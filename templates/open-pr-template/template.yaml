@@ -72,6 +72,21 @@ spec:
         gitAuthorName: ${{ parameters.username }}
         gitAuthorEmail: ${{ parameters.username }}@example.com
 
+    - id: catalog-entity
+      name: Create Catalog Entity File
+      action: fetch:template
+      input:
+        url: ./skeleton/catalog
+        templateFileExtension: false
+        values:
+          username: ${{ parameters.username }}
+          owner: ${{ parameters.owner }}
+          repo: ${{ parameters.repo }}
+          branchName: ${{ parameters.branchName }}
+          prTitle: ${{ parameters.prTitle }}
+          prDescription: ${{ parameters.prDescription }}
+          prUrl: ${{ steps.publish.output.remoteUrl }}
+
     - id: register
       name: Register Entity in Catalog
       action: catalog:write
@@ -86,6 +101,8 @@ spec:
             annotations:
               github.com/project-slug: ${{ parameters.owner }}/${{ parameters.repo }}
               github.com/pull-request-url: ${{ steps.publish.output.remoteUrl }}
+              backstage.io/managed-by-location: url:https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/blob/${{ parameters.branchName }}/catalog-info.yaml
+              backstage.io/managed-by-origin-location: url:https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/blob/${{ parameters.branchName }}/catalog-info.yaml
           spec:
             type: pull-request
             lifecycle: production
@@ -101,10 +118,16 @@ spec:
         url: ${{ steps.publish.output.remoteUrl }}
       - title: View in Catalog
         url: /catalog/default/component/pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
     text:
       - title: Catalog Registration
         content: |
           The PR has been registered in the Backstage catalog as:
           **component:pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}**
           
+          Entity Reference: ${{ steps.register.output.entityRef }}
+          
           You can now follow the PR's progress directly in Backstage!
+          
+          Note: If the entity is not immediately visible, it may take a moment for the catalog to refresh. You can also try searching for it in the catalog.
