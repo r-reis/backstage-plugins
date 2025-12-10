@@ -63,10 +63,6 @@ spec:
 
   output:
     links:
-      - title: View Interactive PR Report (HTML)
-        url: ${{ steps.create-reports.output.path }}/pr-list.html
-      - title: View Markdown Report
-        url: ${{ steps.create-reports.output.path }}/pr-list.md
       - title: View PRs on GitHub
         url: https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/pulls?q=is:pr+is:${{ parameters.state }}
       - title: GitHub API Endpoint
@@ -76,5 +72,16 @@ spec:
         content: ${{ parameters.owner }}/${{ parameters.repo }}
       - title: PR State Filter
         content: ${{ parameters.state }}
-      - title: Instructions
-        content: Open pr-list.html in your browser for an interactive PR list. The HTML file will automatically fetch and display PRs from GitHub. For private repos, enter your GitHub token in the page.
+      - title: Generated Files
+        content: |
+          The template has generated two files in your workspace:
+          
+          1. **pr-list.html** - Interactive HTML report
+             - Open this file in your web browser
+             - It will automatically fetch and display pull requests
+             - For private repositories, enter your GitHub token when prompted
+             
+          2. **pr-list.md** - Markdown documentation
+             - Contains API endpoint information and usage examples
+             
+          Both files are located in the workspace directory created by this template.
