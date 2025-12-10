@@ -39,15 +39,6 @@ spec:
             - all
           default: open
           
-        outputFormat:
-          title: Output Format
-          type: string
-          description: 'Format of the output file'
-          enum:
-            - markdown
-            - json
-          default: markdown
-
   steps:
     - id: create-reports
       name: Create PR List Reports
@@ -72,16 +63,44 @@ spec:
         content: ${{ parameters.owner }}/${{ parameters.repo }}
       - title: PR State Filter
         content: ${{ parameters.state }}
-      - title: Generated Files
+      - title: 📁 Generated Files
         content: |
-          The template has generated two files in your workspace:
+          The template has created two files:
+          • pr-list.html - Interactive HTML report (open in browser)
+          • pr-list.md - Markdown documentation with API examples
           
-          1. **pr-list.html** - Interactive HTML report
-             - Open this file in your web browser
-             - It will automatically fetch and display pull requests
-             - For private repositories, enter your GitHub token when prompted
-             
-          2. **pr-list.md** - Markdown documentation
-             - Contains API endpoint information and usage examples
-             
-          Both files are located in the workspace directory created by this template.
+      - title: 🔍 How to Access Files in Backstage UI
+        content: |
+          **Method 1: Task Output Download (Recommended)**
+          
+          After the task completes, look for one of these options in the task output screen:
+          • A "Download" button or link
+          • A "Download Workspace" button
+          • A "View Files" or "Browse Workspace" option
+          • Files listed in the task output that you can click to download
+          
+          Once downloaded, extract the ZIP file and open `pr-list.html` in your browser.
+          
+          **Method 2: Task Logs/Workspace**
+          
+          Some Backstage installations show workspace files in:
+          • The task execution logs
+          • A "Workspace" tab in the task details
+          • File browser in the task output
+          
+          **Method 3: Direct File Access**
+          
+          If you have access to the Backstage backend, files are typically stored in:
+          `/tmp/backstage-workspace/[task-id]/`
+          
+          You can also check the task logs for the exact workspace path.
+          
+      - title: 💡 Using the HTML Report
+        content: |
+          Once you have `pr-list.html`:
+          1. Open it in any modern web browser (Chrome, Firefox, Safari, Edge)
+          2. The page will automatically fetch PRs from GitHub API
+          3. For private repositories, enter your GitHub token in the input field
+          4. Click "Refresh PR List" to update the data
+          
+          The HTML file is self-contained and works offline (it fetches data from GitHub when opened).
