@@ -72,26 +72,28 @@ spec:
         gitAuthorName: ${{ parameters.username }}
         gitAuthorEmail: ${{ parameters.username }}@example.com
 
-    - id: catalog-write
-      name: Write Catalog Entity
-      action: fetch:template
-      input:
-        url: ./skeleton/catalog
-        templateFileExtension: false
-        values:
-          username: ${{ parameters.username }}
-          owner: ${{ parameters.owner }}
-          repo: ${{ parameters.repo }}
-          branchName: ${{ parameters.branchName }}
-          prTitle: ${{ parameters.prTitle }}
-          prDescription: ${{ parameters.prDescription }}
-          prUrl: ${{ steps.publish.output.remoteUrl }}
-
     - id: register
       name: Register Entity in Catalog
       action: catalog:write
       input:
-        filePath: ./catalog-info.yaml
+        entity:
+          apiVersion: backstage.io/v1alpha1
+          kind: Component
+          metadata:
+            name: pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+            title: ${{ parameters.prTitle }}
+            description: ${{ parameters.prDescription }}
+            annotations:
+              github.com/project-slug: ${{ parameters.owner }}/${{ parameters.repo }}
+              github.com/pull-request-url: ${{ steps.publish.output.remoteUrl }}
+          spec:
+            type: pull-request
+            lifecycle: production
+            owner: ${{ parameters.username }}
+            links:
+              - url: ${{ steps.publish.output.remoteUrl }}
+                title: View on GitHub
+                icon: github
 
   output:
     links:
