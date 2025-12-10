@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: pr-${{ values.owner }}-${{ values.repo }}-${{ values.branchName }}
+  title: ${{ values.prTitle }}
+  description: ${{ values.prDescription }}
+  annotations:
+    github.com/project-slug: ${{ values.owner }}/${{ values.repo }}
+    github.com/pull-request-url: ${{ values.prUrl }}
+spec:
+  type: pull-request
+  lifecycle: production
+  owner: ${{ values.username }}
+  links:
+    - url: ${{ values.prUrl }}
+      title: View on GitHub
+      icon: github
