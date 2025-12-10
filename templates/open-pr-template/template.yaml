@@ -28,7 +28,7 @@ spec:
           title: Target Repository
           type: string
           description: 'Repository in format: org/repo or github.com/org/repo or https://github.com/org/repo'
-          ui:placeholder: 'my-org/my-repo or github.com/my-org/my-repo'
+          ui:placeholder: 'my-org/my-repo'
         
         prTitle:
           title: PR Title
@@ -55,11 +55,32 @@ spec:
         values:
           username: ${{ parameters.username }}
 
+    - id: debug-repo-url
+      name: Debug Repository URL
+      action: script:execute
+      input:
+        script: |
+          const input = '${{ parameters.targetRepo }}';
+          const cleaned = input
+            .replace(/^https?:\/\//, '')
+            .replace(/^github\.com\//, '');
+          const parts = cleaned.split('/').filter(p => p);
+          const owner = parts[0] || 'MISSING';
+          const repo = parts[1] || 'MISSING';
+          const repoUrl1 = `github.com?owner=${owner}&repo=${repo}`;
+          const repoUrl2 = `github.com?repo=${repo}&owner=${owner}`;
+          console.log('=== Repository URL Debug ===');
+          console.log(`Input: ${input}`);
+          console.log(`Cleaned: ${cleaned}`);
+          console.log(`Owner: ${owner}, Repo: ${repo}`);
+          console.log(`Format 1: ${repoUrl1}`);
+          console.log(`Format 2: ${repoUrl2}`);
+
     - id: publish
       name: Create Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: github.com?owner=${{ (parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/'))[0] }}&repo=${{ (parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/'))[1] }}
+        repoUrl: github.com?repo=${{ ((parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/')) | reject('equalto', ''))[1] }}&owner=${{ ((parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/')) | reject('equalto', ''))[0] }}
         branchName: ${{ parameters.branchName }}
         title: ${{ parameters.prTitle }}
         description: ${{ parameters.prDescription }}
