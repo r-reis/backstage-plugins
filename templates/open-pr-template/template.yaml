@@ -15,7 +15,8 @@ spec:
     - title: Pull Request Information
       required:
         - username
-        - targetRepo
+        - owner
+        - repo
         - prTitle
       properties:
         username:
@@ -24,12 +25,16 @@ spec:
           description: Your GitHub/GitLab username
           ui:autofocus: true
         
-        targetRepo:
-          title: Target Repository
+        owner:
+          title: Repository Owner
           type: string
-          description: 'Repository in format: org/repo (e.g., r-reis/backstage-plugins). Just enter org/repo, not the full URL.'
-          pattern: '^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$'
-          ui:placeholder: 'r-reis/backstage-plugins'
+          description: 'GitHub organization or username (e.g., r-reis)'
+          ui:autofocus: true
+          
+        repo:
+          title: Repository Name
+          type: string
+          description: 'Repository name (e.g., backstage-plugins)'
         
         prTitle:
           title: PR Title
@@ -60,7 +65,7 @@ spec:
       name: Create Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: github.com?owner=${{ (parameters.targetRepo | split('/'))[0] }}&repo=${{ (parameters.targetRepo | split('/'))[1] }}
+        repoUrl: github.com?owner=${{ parameters.owner }}&repo=${{ parameters.repo }}
         branchName: ${{ parameters.branchName }}
         title: ${{ parameters.prTitle }}
         description: ${{ parameters.prDescription }}
