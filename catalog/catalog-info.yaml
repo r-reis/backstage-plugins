@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: pr---
+  title: 
+  description: 
+  annotations:
+    github.com/project-slug: /
+    github.com/pull-request-url: 
+spec:
+  type: pull-request
+  lifecycle: production
+  owner: r-reis
+  links:
+    - url: 
+      title: View on GitHub
+      icon: github
