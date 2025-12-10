@@ -27,9 +27,8 @@ spec:
         targetRepo:
           title: Target Repository
           type: string
-          description: 'Repository URL (e.g., github.com/org/repo)'
-          pattern: '^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$'
-          ui:placeholder: 'github.com/my-org/my-repo'
+          description: 'Repository in format: org/repo or github.com/org/repo or https://github.com/org/repo'
+          ui:placeholder: 'my-org/my-repo or github.com/my-org/my-repo'
         
         prTitle:
           title: PR Title
@@ -60,7 +59,7 @@ spec:
       name: Create Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: ${{ parameters.targetRepo }}
+        repoUrl: github.com?owner=${{ (parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/'))[0] }}&repo=${{ (parameters.targetRepo | replace('https://', '') | replace('http://', '') | replace('github.com/', '') | split('/'))[1] }}
         branchName: ${{ parameters.branchName }}
         title: ${{ parameters.prTitle }}
         description: ${{ parameters.prDescription }}

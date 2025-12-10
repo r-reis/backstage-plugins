@@ -14,7 +14,7 @@ This template creates a pull request with a hello world file in any target repos
 ## Parameters
 
 - **username**: Your identifier
-- **targetRepo**: Target repository (format: github.com/org/repo)
+- **targetRepo**: Target repository (accepts: `org/repo`, `github.com/org/repo`, or `https://github.com/org/repo`)
 - **prTitle**: Title for the pull request
 - **prDescription**: Description for the pull request
 - **branchName**: Name of the branch to create
