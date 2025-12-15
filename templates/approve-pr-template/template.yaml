@@ -1,0 +1,158 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: approve-pr-template
+  title: Approve and Create Pull Request
+  description: Approves a pending PR request and creates the actual GitHub PR
+  tags:
+    - git
+    - pr
+    - approval
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: PR Request to Approve
+      required:
+        - prRequestEntity
+        - approverUsername
+      properties:
+        prRequestEntity:
+          title: Select PR Request
+          type: string
+          description: Select a pending PR request from the catalog
+          ui:field: EntityPicker
+          ui:options:
+            catalogFilter:
+              - kind: Component
+                spec.type: pr-request
+
+        approverUsername:
+          title: Your Username (Approver)
+          type: string
+          description: Your GitHub username as the approver
+          ui:autofocus: true
+
+    - title: PR Request Details
+      description: Enter the details from the selected PR request
+      required:
+        - owner
+        - repo
+        - branchName
+        - prTitle
+        - prDescription
+        - requestedBy
+      properties:
+        owner:
+          title: Repository Owner
+          type: string
+          description: 'Owner from the PR request (e.g., r-reis)'
+
+        repo:
+          title: Repository Name
+          type: string
+          description: 'Repository name from the PR request'
+
+        branchName:
+          title: Branch Name
+          type: string
+          description: 'Branch name from the PR request'
+
+        prTitle:
+          title: PR Title
+          type: string
+          description: 'Title from the PR request'
+
+        prDescription:
+          title: PR Description
+          type: string
+          ui:widget: textarea
+          description: 'Description from the PR request'
+
+        requestedBy:
+          title: Requested By
+          type: string
+          description: 'Username of the person who created the request'
+
+  steps:
+    - id: fetch-base
+      name: Fetch Template Files
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          approver: ${{ parameters.approverUsername }}
+
+    - id: publish
+      name: Create GitHub Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?owner=${{ parameters.owner }}&repo=${{ parameters.repo }}
+        branchName: ${{ parameters.branchName }}
+        title: ${{ parameters.prTitle }}
+        description: |
+          ${{ parameters.prDescription }}
+
+          ---
+          **Backstage PR Workflow:**
+          - Requested by: @${{ parameters.requestedBy }}
+          - Approved by: @${{ parameters.approverUsername }}
+        gitAuthorName: ${{ parameters.requestedBy }}
+        gitAuthorEmail: ${{ parameters.requestedBy }}@example.com
+
+    - id: update-entity
+      name: Update PR Request Status to Approved
+      action: catalog:write
+      input:
+        entity:
+          apiVersion: backstage.io/v1alpha1
+          kind: Component
+          metadata:
+            name: pr-request-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+            namespace: default
+            title: "[APPROVED] ${{ parameters.prTitle }}"
+            description: ${{ parameters.prDescription }}
+            annotations:
+              github.com/project-slug: ${{ parameters.owner }}/${{ parameters.repo }}
+              github.com/pull-request-url: ${{ steps.publish.output.remoteUrl }}
+              backstage.io/approval-status: approved
+              backstage.io/pr-branch: ${{ parameters.branchName }}
+              backstage.io/pr-title: ${{ parameters.prTitle }}
+              backstage.io/pr-description: ${{ parameters.prDescription }}
+              backstage.io/requested-by: ${{ parameters.requestedBy }}
+              backstage.io/approved-by: ${{ parameters.approverUsername }}
+              backstage.io/approved-at: ${{ '' | now }}
+          spec:
+            type: pr-request
+            lifecycle: production
+            owner: ${{ parameters.requestedBy }}
+            system: pull-requests
+            links:
+              - url: ${{ steps.publish.output.remoteUrl }}
+                title: View Pull Request on GitHub
+                icon: github
+
+  output:
+    links:
+      - title: View Pull Request on GitHub
+        url: ${{ steps.publish.output.remoteUrl }}
+        icon: github
+      - title: View Updated Entity in Catalog
+        url: /catalog/default/component/pr-request-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+        icon: catalog
+    text:
+      - title: PR Approved and Created
+        content: |
+          **Pull Request Successfully Created!**
+
+          The PR request has been approved and the GitHub PR has been created.
+
+          **Details:**
+          - Repository: ${{ parameters.owner }}/${{ parameters.repo }}
+          - Branch: ${{ parameters.branchName }}
+          - PR URL: ${{ steps.publish.output.remoteUrl }}
+          - Requested by: ${{ parameters.requestedBy }}
+          - Approved by: ${{ parameters.approverUsername }}
+
+          The catalog entity has been updated with the approval information and PR link.

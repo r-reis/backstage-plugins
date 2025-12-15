@@ -2,11 +2,12 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: open-pr-template
-  title: Open Pull Request
-  description: Opens a PR with a hello world file in any repository
+  title: Request Pull Request
+  description: Creates a PR request that needs approval before opening the actual PR
   tags:
     - git
     - pr
+    - approval
 spec:
   owner: platform-team
   type: service
@@ -54,80 +55,61 @@ spec:
 
   steps:
     - id: fetch-base
-      name: Fetch Template
+      name: Fetch Template Files
       action: fetch:template
       input:
         url: ./skeleton
         values:
           username: ${{ parameters.username }}
 
-    - id: publish
-      name: Create Pull Request
-      action: publish:github:pull-request
-      input:
-        repoUrl: github.com?owner=${{ parameters.owner }}&repo=${{ parameters.repo }}
-        branchName: ${{ parameters.branchName }}
-        title: ${{ parameters.prTitle }}
-        description: ${{ parameters.prDescription }}
-        gitAuthorName: ${{ parameters.username }}
-        gitAuthorEmail: ${{ parameters.username }}@example.com
-
-    - id: catalog-entity
-      name: Create Catalog Entity File
-      action: fetch:template
-      input:
-        url: ./skeleton/catalog
-        templateFileExtension: false
-        values:
-          username: ${{ parameters.username }}
-          owner: ${{ parameters.owner }}
-          repo: ${{ parameters.repo }}
-          branchName: ${{ parameters.branchName }}
-          prTitle: ${{ parameters.prTitle }}
-          prDescription: ${{ parameters.prDescription }}
-          prUrl: ${{ steps.publish.output.remoteUrl }}
-
     - id: register
-      name: Register Entity in Catalog
+      name: Create PR Request in Catalog
       action: catalog:write
       input:
         entity:
           apiVersion: backstage.io/v1alpha1
           kind: Component
           metadata:
-            name: pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
-            title: ${{ parameters.prTitle }}
+            name: pr-request-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+            namespace: default
+            title: "[PENDING] ${{ parameters.prTitle }}"
             description: ${{ parameters.prDescription }}
             annotations:
               github.com/project-slug: ${{ parameters.owner }}/${{ parameters.repo }}
-              github.com/pull-request-url: ${{ steps.publish.output.remoteUrl }}
-              backstage.io/managed-by-location: url:https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/blob/${{ parameters.branchName }}/catalog-info.yaml
-              backstage.io/managed-by-origin-location: url:https://github.com/${{ parameters.owner }}/${{ parameters.repo }}/blob/${{ parameters.branchName }}/catalog-info.yaml
+              backstage.io/approval-status: pending
+              backstage.io/pr-branch: ${{ parameters.branchName }}
+              backstage.io/pr-title: ${{ parameters.prTitle }}
+              backstage.io/pr-description: ${{ parameters.prDescription }}
+              backstage.io/requested-by: ${{ parameters.username }}
+              backstage.io/requested-at: ${{ '' | now }}
           spec:
-            type: pull-request
-            lifecycle: production
+            type: pr-request
+            lifecycle: experimental
             owner: ${{ parameters.username }}
-            links:
-              - url: ${{ steps.publish.output.remoteUrl }}
-                title: View on GitHub
-                icon: github
+            system: pull-requests
 
   output:
     links:
-      - title: View Pull Request
-        url: ${{ steps.publish.output.remoteUrl }}
-      - title: View in Catalog
-        url: /catalog/default/component/pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
+      - title: View PR Request in Catalog
+        url: /catalog/default/component/pr-request-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}
         icon: catalog
         entityRef: ${{ steps.register.output.entityRef }}
     text:
-      - title: Catalog Registration
+      - title: PR Request Created
         content: |
-          The PR has been registered in the Backstage catalog as:
-          **component:pr-${{ parameters.owner }}-${{ parameters.repo }}-${{ parameters.branchName }}**
-          
-          Entity Reference: ${{ steps.register.output.entityRef }}
-          
-          You can now follow the PR's progress directly in Backstage!
-          
-          Note: If the entity is not immediately visible, it may take a moment for the catalog to refresh. You can also try searching for it in the catalog.
+          Your PR request has been created and is **pending approval**.
+
+          **Request Details:**
+          - Repository: ${{ parameters.owner }}/${{ parameters.repo }}
+          - Branch: ${{ parameters.branchName }}
+          - Title: ${{ parameters.prTitle }}
+          - Requested by: ${{ parameters.username }}
+
+          **Next Steps:**
+          1. A reviewer will approve or reject this request
+          2. Once approved, the actual GitHub PR will be created
+          3. You'll be notified when the PR is created
+
+          **Entity Reference:** ${{ steps.register.output.entityRef }}
+
+          You can track the status of your request in the catalog.

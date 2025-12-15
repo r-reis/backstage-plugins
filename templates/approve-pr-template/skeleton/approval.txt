@@ -1,0 +1,9 @@
+PR Approval Confirmation
+========================
+
+This PR was approved through the Backstage approval workflow.
+
+Approver: ${{ values.approver }}
+Approval Date: Generated via Backstage scaffolder
+
+This file can be included in the PR if needed for audit purposes.
