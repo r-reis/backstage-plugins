@@ -81,7 +81,6 @@ spec:
               backstage.io/pr-title: ${{ parameters.prTitle }}
               backstage.io/pr-description: ${{ parameters.prDescription }}
               backstage.io/requested-by: ${{ parameters.username }}
-              backstage.io/requested-at: ${{ '' | now }}
           spec:
             type: pr-request
             lifecycle: experimental
